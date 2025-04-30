@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  FREE
+  PRO
+  ALUNO
+}
+
+model User {
+  id         String      @id @default(uuid())
+  nome       String
+  email      String      @unique
+  senha      String
+  role       UserRole    @default(FREE)
+  updatedBy  String?
+  conversas  Conversa[]
+  passwordResets PasswordReset[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Conversa {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  secao       String
+  threadId    String?    // ID da thread da OpenAI
+  mensagens   Mensagem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Mensagem {
+  id         String     @id @default(uuid())
+  role       String
+  content    String
+  conversaId String
+  conversa   Conversa   @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// npx prisma migrate dev --name add-password-reset
+// npx prisma generate
