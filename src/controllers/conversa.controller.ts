@@ -117,15 +117,4 @@ export class ConversaController {
       res.status(500).send(error.message);
     }
   }
-
-  // Listar todos os assistentes
-  async listarAssistentes(req: Request, res: Response) {
-    try {
-      const assistentes = await perguntasService.listarAssistentes();
-      res.json(assistentes);
-    } catch (error: any) {
-      console.error('Erro ao listar assistentes:', error);
-      res.status(500).send(error.message);
-    }
-  }
 } 

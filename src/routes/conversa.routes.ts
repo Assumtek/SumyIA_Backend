@@ -8,9 +8,6 @@ const conversaController = new ConversaController();
 // Middleware para verificar autenticação em todas as rotas
 router.use(AuthMiddleware.verificarToken);
 
-// Rota para listar todos os assistentes
-router.get('/assistentes', conversaController.listarAssistentes);
-
 // Rota para iniciar uma nova conversa
 router.post('/iniciar', conversaController.iniciarConversa);
 
