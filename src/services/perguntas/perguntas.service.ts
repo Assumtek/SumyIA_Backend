@@ -43,10 +43,11 @@ export class PerguntasService {
   }
 
   private async executarAssistente(threadId: string) {
+    console.log('Executando o assistente');
     const runResponse = await axios.post(
       `https://api.openai.com/v1/threads/${threadId}/runs`,
       {
-        assistant_id: 'asst_mdjzaaiGzGOc1i1PxU1SbZvR'
+        assistant_id: 'asst_aXVfgNWpv7qNz091Cri2Imc7',
       },
       {
         headers: {
@@ -85,7 +86,20 @@ export class PerguntasService {
     const assistantMessages = messagesResponse.data.data.filter(
       (msg: any) => msg.role === 'assistant'
     );
+
+    console.log('assistantMessages', assistantMessages[0].content[0].text.value.trim());
+    console.log('Asistente', assistantMessages[0].content[0]);
+    console.log('Dados do assistente', assistantMessages[0]);
     
+    const functionCall = assistantMessages[0].content[0].text.value.trim();
+
+    if (functionCall && functionCall.name === 'export_functional_specification') {
+      console.log('functionCall', functionCall.name);
+      const params = JSON.parse(functionCall.arguments);
+      const resultado = await this.chamarFuncaoExportarEspecificacao(params);
+      return resultado;
+    }
+
     return assistantMessages[0].content[0].text.value.trim();
   }
 
@@ -158,7 +172,7 @@ export class PerguntasService {
       await prisma.mensagem.create({
         data: {
           role: 'system',
-          content: `Você deve ser simpatica`,
+          content: `Seu nome é FelipeIA`,
           conversaId: conversa.id
         }
       });
@@ -241,6 +255,10 @@ export class PerguntasService {
       throw new Error('Erro ao responder pergunta');
     }
   }
+
+
+
+
 
   // Listar conversas de um usuário
   async listarConversas(userId: string) {
@@ -465,5 +483,14 @@ export class PerguntasService {
       
       throw new Error('Erro ao listar assistentes da OpenAI');
     }
+  }
+
+  private async chamarFuncaoExportarEspecificacao(params: any) {
+    // Implemente a lógica para processar os parâmetros e gerar/exportar as especificações
+    // Este é um exemplo básico. Você pode expandir essa lógica conforme necessário
+    return {
+      resultado: 'Especificação gerada com sucesso',
+      params: params
+    };
   }
 } 
