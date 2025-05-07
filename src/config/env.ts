@@ -13,7 +13,7 @@ export const config = {
     expiresIn: '10d'
   },
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || 'sk-proj-1234567890'
+    apiKey: process.env.OPENAI_API_KEY
   },
   email: {
     host: process.env.EMAIL_HOST || 'smtp.example.com',
