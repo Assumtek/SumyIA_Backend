@@ -13,7 +13,7 @@ export class DocumentoController {
     const { conversaId } = req.params;
     
     try {
-      const resultado = await documentoService.gerarDocumentoWord(conversaId, userId);
+      const resultado = await documentoService.gerarDocumentoEspecificacao(conversaId, userId);
       
       // Configurar cabeçalhos para download do arquivo
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');

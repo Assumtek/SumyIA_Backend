@@ -11,12 +11,19 @@ import {
 
 import OpenAI from 'openai';
 import { config } from '../../config/env';
+import { DocumentoService } from '../documento/documento.service';
 
 const openai = new OpenAI({
   apiKey: config.openai.apiKey,
 });
 
 export class PerguntasService {
+  private documentoService: DocumentoService;
+
+  constructor() {
+    this.documentoService = new DocumentoService();
+  }
+
   private async criarAssistente() {
     try {
       const assistant = await openai.beta.assistants.create({
@@ -101,13 +108,33 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
   }
 
   private async chamarFuncaoExportarEspecificacao(params: any) {
-
     console.log('Chamou a função exportar especificação', params);
 
-    return {
-      resultado: 'Especificação gerada com sucesso',
-      params: params
-    };
+    const { project_name, specifications, format } = params;
+
+    try {
+      // Gerar o documento usando o DocumentoService
+      const resultado = await this.documentoService.gerarDocumentoEspecificacao(project_name, specifications);
+
+      return {
+        status: 'success',
+        message: 'Especificação gerada com sucesso',
+        data: {
+          project_name,
+          specifications,
+          format,
+          file_name: resultado.fileName,
+          file_path: resultado.filePath
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao gerar documento:', error);
+      return {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Erro ao gerar documento',
+        data: null
+      };
+    }
   }
 
   private async executarAssistente(threadId: string) {

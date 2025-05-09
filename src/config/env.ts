@@ -6,24 +6,28 @@ dotenv.config({ path: resolve(__dirname, '../../.env') });
 
 export const config = {
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://usuario:senha@localhost:5432/sanny_ia'
+    url: process.env.DATABASE_URL
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'seu_segredo_super_secreto',
-    expiresIn: '10d'
+    secret: process.env.JWT_SECRET || 'default-secret',
+    expiresIn: '1d'
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY
   },
   email: {
-    host: process.env.EMAIL_HOST || 'smtp.example.com',
-    port: parseInt(process.env.EMAIL_PORT || '587', 10),
+    host: process.env.EMAIL_HOST || '',
+    port: Number(process.env.EMAIL_PORT) || 587,
     secure: process.env.EMAIL_SECURE === 'true',
-    user: process.env.EMAIL_USER || 'seu_usuario@example.com',
-    password: process.env.EMAIL_PASSWORD || 'sua_senha',
-    sender: process.env.EMAIL_SENDER || 'noreply@seudominio.com'
+    user: process.env.EMAIL_USER || '',
+    password: process.env.EMAIL_PASSWORD || '',
+    sender: process.env.EMAIL_SENDER || ''
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL || '',
+    anonKey: process.env.SUPABASE_ANON_KEY || ''
   },
   app: {
-    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000'
+    port: process.env.PORT || 3000
   }
 }; 
