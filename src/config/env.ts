@@ -28,6 +28,7 @@ export const config = {
     anonKey: process.env.SUPABASE_ANON_KEY || ''
   },
   app: {
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+    frontendUrl: process.env.FRONTEND_URL || ''
   }
 }; 
