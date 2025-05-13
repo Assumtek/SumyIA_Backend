@@ -24,8 +24,19 @@ model User {
   updatedBy  String?
   conversas  Conversa[]
   passwordResets PasswordReset[]
+  documentos Documento[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+}
+
+model Documento {
+  id         String      @id @default(uuid())
+  nome       String
+  url        String
+  createdAt  DateTime    @default(now())
+  projectName String
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
 }
 
 model Conversa {
@@ -58,5 +69,5 @@ model PasswordReset {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// npx prisma migrate dev --name suplabase
+// npx prisma migrate dev --name documento
 // npx prisma generate

@@ -107,14 +107,14 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     });
   }
 
-  private async chamarFuncaoExportarEspecificacao(params: any) {
+  private async chamarFuncaoExportarEspecificacao(params: any, userId: string) {
     console.log('Chamou a função exportar especificação', params);
 
     const { project_name, specifications, format } = params;
 
     try {
       // Gerar o documento usando o DocumentoService
-      const resultado = await this.documentoService.gerarDocumentoEspecificacao(project_name, specifications);
+      const resultado = await this.documentoService.gerarDocumentoEspecificacao(project_name, specifications, userId);
 
       return {
         status: 'success',
@@ -137,9 +137,10 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     }
   }
 
-  private async executarAssistente(threadId: string) {
+  private async executarAssistente(threadId: string, userId: string) {
     console.log('Executando o assistente');
     console.log('threadId', threadId);
+    console.log('userId', userId);
 
     const run = await openai.beta.threads.runs.create(threadId, {
       assistant_id: await this.criarAssistente()
@@ -161,7 +162,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
       // Executa a função apropriada
       let result;
       if (functionCall.function.name === 'export_functional_specification') {
-        result = await this.chamarFuncaoExportarEspecificacao(args);
+        result = await this.chamarFuncaoExportarEspecificacao(args, userId);
       }
 
       // Envia o resultado da função
@@ -201,9 +202,8 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
 
     return firstMessage.text.value.trim();
   }
-
   // Chamar a API da OpenAI e obter a resposta com base no histórico
-  async obterRespostaOpenAI(mensagens: Array<{ role: string, content: string }>, threadId?: string) {
+  async obterRespostaOpenAI(mensagens: Array<{ role: string, content: string }>, userId: string, threadId?: string) {
     try {
       let currentThreadId = threadId;
 
@@ -216,7 +216,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
       }
 
       await this.adicionarMensagemThread(currentThreadId, mensagens[mensagens.length - 1].content);
-      const resposta = await this.executarAssistente(currentThreadId);
+      const resposta = await this.executarAssistente(currentThreadId, userId);
 
       return { resposta, threadId: currentThreadId };
     } catch (error) {
@@ -279,7 +279,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
 
 
       const historico = await this.obterHistoricoMensagens(conversa.id);
-      const { resposta: respostaIA, threadId } = await this.obterRespostaOpenAI(historico);
+      const { resposta: respostaIA, threadId } = await this.obterRespostaOpenAI(historico, userId);
 
       // Atualiza a conversa com o threadId
       await prisma.conversa.update({
@@ -333,7 +333,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
       });
 
       const historico = await this.obterHistoricoMensagens(conversaId);
-      const { resposta: respostaIA } = await this.obterRespostaOpenAI(historico, conversa.threadId || undefined);
+      const { resposta: respostaIA } = await this.obterRespostaOpenAI(historico, userId, conversa.threadId || undefined);
 
       await prisma.mensagem.create({
         data: {

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { config } from '../../config/env';
+import prisma from '../../prisma/client';
 
 export class DocumentoService {
   private supabase;
@@ -15,8 +16,18 @@ export class DocumentoService {
   }
 
   // Gerar documento Word a partir de especificações
-  async gerarDocumentoEspecificacao(projectName: string, specifications: string) {
+  async gerarDocumentoEspecificacao(projectName: string, specifications: string, userId: string) {
     try {
+      console.log('Gerando documento Word...');
+      console.log('userId', userId);
+      console.log(projectName);
+      console.log(specifications);
+
+      // Dividir as especificações em seções
+      // Usar regex para separar título e conteúdo, removendo os **
+      const sectionRegex = /\*\*(.+?):\*\*\s*([\s\S]*?)(?=(\*\*.+?:\*\*|$))/g;
+      const matches = [...specifications.matchAll(sectionRegex)];
+
       // Criar o documento Word
       const doc = new Document({
         sections: [{
@@ -48,14 +59,24 @@ export class DocumentoService {
               }
             }),
             
-            // Conteúdo da especificação
-            new Paragraph({
-              text: specifications,
-              spacing: {
-                before: 100,
-                after: 200
-              }
-            })
+            // Adicionar cada seção formatada
+            ...matches.map(match => [
+              new Paragraph({
+                text: match[1].trim(), // Título sem **
+                heading: HeadingLevel.HEADING_3,
+                spacing: {
+                  before: 200,
+                  after: 100
+                }
+              }),
+              new Paragraph({
+                text: match[2].trim(), // Conteúdo
+                spacing: {
+                  before: 100,
+                  after: 200
+                }
+              })
+            ]).flat()
           ]
         }]
       });
@@ -93,7 +114,19 @@ export class DocumentoService {
 
       // Remover arquivo temporário
       fs.unlinkSync(filePath);
-      
+
+      console.log('Documento gerado com sucesso!');
+      // Salvar o documento gerado no banco de dados usando prisma
+
+      await prisma.documento.create({
+        data: {
+          nome: fileName,
+          url: publicUrl,
+          projectName,
+          userId
+        }
+      });
+
       return {
         fileName,
         filePath: publicUrl,
