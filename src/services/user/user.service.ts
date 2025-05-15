@@ -18,7 +18,7 @@ export class UserService {
   }
 
   // Criar um novo usuário
-  async createUser(nome: string, email: string, senha: string, role: UserRole = 'FREE') {
+  async createUser(nome: string, email: string, senha: string, role: UserRole = 'ALUNO') {
     try {
       // Validar dados de entrada
       await createUserSchema.validate({ nome, email, senha, role });
@@ -53,7 +53,7 @@ export class UserService {
       });
 
       // Enviar email de boas-vindas (não aguarda o resultado para não bloquear)
-      this.emailService.enviarEmailBoasVindas(nome, email)
+      this.emailService.enviarEmailCredenciaisTemporarias(nome, email, senha)
         .then(result => {
           if (!result.success) {
             console.warn(`Falha ao enviar email de boas-vindas para ${email}: ${result.message}`);

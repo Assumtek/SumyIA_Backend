@@ -19,17 +19,16 @@ export class WebhookController {
                 case "transaction":
                     await this.webhookService.handleTransaction(webhook.payload);
                     console.log("Transação processada com sucesso");
-                    console.log(webhook.payload);
                     break;
                 case "subscription":
                     await this.webhookService.handleSubscription(webhook.payload);
                     console.log("Assinatura processada com sucesso");
-                    console.log(webhook.payload);
+                    
                     break;
                 case "cancellation":
                     await this.webhookService.handleCancellation(webhook.payload);
                     console.log("Cancelamento processado com sucesso");
-                    console.log(webhook.payload);
+                    
                     break;
                 default:
                     console.warn("Webhook desconhecido:", type);

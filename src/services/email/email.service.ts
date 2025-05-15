@@ -56,6 +56,8 @@ export class EmailService {
     }
   }
 
+  // Envia email de boas-vindas para novos usuários mas envia o email e a senha temporária
+
   // Enviar email de recuperação de senha
   async enviarEmailRecuperacaoSenha(nome: string, email: string, resetLink: string) {
     try {
@@ -86,6 +88,58 @@ export class EmailService {
       console.error('Erro ao enviar email de recuperação:', error);
       // Não falha o fluxo principal se o email falhar
       return { success: false, message: 'Não foi possível enviar o email de recuperação' };
+    }
+  }
+
+  async enviarEmailCredenciaisTemporarias(nome: string, email: string, senhaTemporaria: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const template = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px;">
+            <h2 style="color: #333; margin-bottom: 20px;">Bem-vindo(a) à SumyIA! 🎉</h2>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.5;">
+              Olá ${nome},
+            </p>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.5;">
+              Sua conta foi criada com sucesso! Para acessar nossa plataforma, utilize as seguintes credenciais:
+            </p>
+            
+            <div style="background-color: #fff; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="margin: 5px 0;"><strong>Senha Temporária:</strong> ${senhaTemporaria}</p>
+            </div>
+            
+            <p style="color: #555; font-size: 16px; line-height: 1.5;">
+              Por questões de segurança, recomendamos que você altere sua senha no primeiro acesso.
+            </p>
+            
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="${process.env.FRONTEND_URL}/login" 
+                 style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Acessar Minha Conta
+              </a>
+            </div>
+            
+            <p style="color: #777; font-size: 14px; margin-top: 30px;">
+              Se você não solicitou esta conta, por favor ignore este email.
+            </p>
+          </div>
+        </div>
+      `;
+
+      await this.transporter.sendMail({
+        from: `"SumyIA" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Suas Credenciais de Acesso - SumyIA",
+        html: template
+      });
+
+      return { success: true, message: 'Email de credenciais enviado com sucesso' };
+    } catch (error) {
+      console.error('Erro ao enviar email de credenciais:', error);
+      return { success: false, message: 'Erro ao enviar email de credenciais' };
     }
   }
 } 
