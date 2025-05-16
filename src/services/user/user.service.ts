@@ -10,7 +10,7 @@ import { config } from '../../config/env';
 type UserRole = 'ADMIN' | 'FREE' | 'PRO' | 'ALUNO';
 
 export class UserService {
-  
+
   private emailService: EmailService;
 
   constructor() {
@@ -22,7 +22,7 @@ export class UserService {
     try {
       // Validar dados de entrada
       await createUserSchema.validate({ nome, email, senha, role });
-      
+
       // Verifica se o usuário já existe
       const usuarioExistente = await prisma.user.findUnique({
         where: { email }
@@ -41,7 +41,7 @@ export class UserService {
           nome,
           email,
           senha: hashedPassword,
-          role: role as any // Convertemos para any para evitar erros de tipo
+          role: role as UserRole
         }
       });
 
@@ -52,20 +52,33 @@ export class UserService {
         }
       });
 
-      // Enviar email de boas-vindas (não aguarda o resultado para não bloquear)
-      this.emailService.enviarEmailCredenciaisTemporarias(nome, email, senha)
-        .then(result => {
-          if (!result.success) {
-            console.warn(`Falha ao enviar email de boas-vindas para ${email}: ${result.message}`);
-          }
-        })
-        .catch(error => {
-          console.error(`Erro ao tentar enviar email de boas-vindas para ${email}:`, error);
-        });
+      if (role === 'ALUNO') {
+        this.emailService.enviarEmailBoasVindas(nome, email)
+          .then(result => {
+            if (!result.success) {
+              console.warn(`Falha ao enviar email de boas-vindas para ${email}: ${result.message}`);
+            }
+          })
+          .catch(error => {
+            console.error(`Erro ao tentar enviar email de boas-vindas para ${email}:`, error);
+          });
+      } else {
+        // Enviar email de boas-vindas (não aguarda o resultado para não bloquear)
+        this.emailService.enviarEmailCredenciaisTemporarias(nome, email, senha)
+          .then(result => {
+            if (!result.success) {
+              console.warn(`Falha ao enviar email de boas-vindas para ${email}: ${result.message}`);
+            }
+          })
+          .catch(error => {
+            console.error(`Erro ao tentar enviar email de boas-vindas para ${email}:`, error);
+          });
+      }
 
       // Remove a senha antes de retornar
       const { senha: _, ...usuarioSemSenha } = user;
       return usuarioSemSenha;
+
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -79,7 +92,7 @@ export class UserService {
     try {
       // Validar ID
       await idSchema.validate({ id });
-      
+
       const usuario = await prisma.user.findUnique({
         where: { id: id as any }, // Convertemos para any para evitar erros de tipo
         select: {
@@ -112,7 +125,7 @@ export class UserService {
       // Validar dados
       await idSchema.validate({ id });
       await updateUserSchema.validate({ nome, email });
-      
+
       const updateData: any = {
         nome,
         email,
@@ -146,26 +159,26 @@ export class UserService {
       // Validar dados
       await idSchema.validate({ id });
       await updatePasswordSchema.validate({ senhaAtual, novaSenha });
-      
+
       // Buscar o usuário para verificar a senha atual
       const usuario = await prisma.user.findUnique({
         where: { id: id as any }
       });
-      
+
       if (!usuario) {
         throw new Error('Usuário não encontrado.');
       }
-      
+
       // Verificar se a senha atual está correta
       const senhaCorreta = await compare(senhaAtual, usuario.senha);
-      
+
       if (!senhaCorreta) {
         throw new Error('Senha atual incorreta.');
       }
-      
+
       // Criptografar a nova senha
       const novaSenhaCriptografada = await hash(novaSenha, 8);
-      
+
       // Atualizar a senha do usuário
       await prisma.user.update({
         where: { id: id as any },
@@ -174,7 +187,7 @@ export class UserService {
           updatedBy
         }
       });
-      
+
       return { message: 'Senha atualizada com sucesso.' };
     } catch (error) {
       if (error instanceof Error) {
@@ -188,21 +201,21 @@ export class UserService {
   async forgotPassword(email: string) {
     try {
       await forgotPasswordSchema.validate({ email });
-      
+
       const usuario = await prisma.user.findUnique({ where: { email } });
-      
+
       if (!usuario) {
         // Não revele se o email existe ou não por segurança
         return { message: 'Se esse email estiver cadastrado, você receberá instruções.' };
       }
-      
+
       // Gerar token aleatório
       const token = crypto.randomBytes(32).toString('hex');
-      
+
       // Salvar o token com expiração de 1 hora
       const expiresAt = new Date(Date.now() + 3600000); // 1 hora
-      
-      
+
+
       await prisma.passwordReset.create({
         data: {
           id: crypto.randomUUID(),
@@ -213,16 +226,16 @@ export class UserService {
           createdAt: new Date()
         }
       });
-      
+
       // Configurar o link de recuperação
       const resetLink = `${config.app.frontendUrl}/reset-password?token=${token}`;
-      
+
       // Enviar email
       const emailResult = await this.emailService.enviarEmailRecuperacaoSenha(usuario.nome, email, resetLink);
       if (!emailResult.success) {
         console.warn(`Falha ao enviar email de recuperação para ${email}: ${emailResult.message}`);
       }
-      
+
       return { message: 'Instruções de recuperação enviadas para seu email.' };
     } catch (error) {
       if (error instanceof Error) throw error;
@@ -234,7 +247,7 @@ export class UserService {
   async resetPassword(token: string, novaSenha: string) {
     try {
       await resetPasswordSchema.validate({ token, novaSenha });
-      
+
       // Usar SQL raw enquanto o Prisma Client não estiver atualizado
       const resetRecords = await prisma.$queryRaw`
         SELECT * FROM "PasswordReset"
@@ -243,7 +256,7 @@ export class UserService {
         AND "expiresAt" > ${new Date()}::timestamp
         LIMIT 1
       `;
-      
+
       /* 
       // Após executar 'npx prisma generate', você pode usar essa versão:
       const passwordReset = await prisma.passwordReset.findFirst({
@@ -260,32 +273,32 @@ export class UserService {
         throw new Error('Token inválido ou expirado');
       }
       */
-      
+
       if (!resetRecords || (resetRecords as any[]).length === 0) {
         throw new Error('Token inválido ou expirado');
       }
-      
+
       const passwordReset = (resetRecords as any[])[0];
-      
+
       // Criptografar nova senha
       const hashedPassword = await hash(novaSenha, 8);
-      
+
       // Atualizar senha do usuário
       await prisma.user.update({
         where: { id: passwordReset.userId },
-        data: { 
+        data: {
           senha: hashedPassword,
-          updatedBy: passwordReset.userId 
+          updatedBy: passwordReset.userId
         }
       });
-      
+
       // Marcar token como usado (SQL raw)
       await prisma.$executeRaw`
         UPDATE "PasswordReset"
         SET "used" = true
         WHERE "id" = ${passwordReset.id}
       `;
-      
+
       /* 
       // Após executar 'npx prisma generate', você pode usar essa versão:
       await prisma.passwordReset.update({
@@ -293,7 +306,7 @@ export class UserService {
         data: { used: true }
       });
       */
-      
+
       return { message: 'Senha atualizada com sucesso' };
     } catch (error) {
       if (error instanceof Error) throw error;

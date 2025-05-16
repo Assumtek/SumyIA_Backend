@@ -13,7 +13,7 @@ export class UserController {
     const { nome, email, senha, role } = req.body;
     
     try {
-      const usuario = await userService.createUser(nome, email, senha, role as UserRole);
+      const usuario = await userService.createUser(nome, email, senha, role);
       res.status(201).json(usuario);
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);

@@ -3,6 +3,7 @@ import { UserController } from '../controllers/user.controller';
 import { AuthMiddleware } from '../middleware/auth.middleware';
 
 const router = express.Router();
+// Instância do controlador de usuário
 const userController = new UserController();
 
 // Rota para criar um novo usuário (registro) - pública
