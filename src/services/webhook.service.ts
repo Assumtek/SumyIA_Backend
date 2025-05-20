@@ -30,8 +30,6 @@ export class WebhookService {
             return;
         }
 
-        // const hasSubscription = payload.subscription && payload.subscription.length > 0;
-
         try {
             // Verificar se o usuário já existe
             const existingUser = await prisma.user.findFirst(
@@ -43,6 +41,15 @@ export class WebhookService {
             )
 
             if (existingUser) {
+                // // Atulizar o user para ativo
+                // await prisma.user.update({
+                //     where: {
+                //         id: existingUser.id
+                //     },
+                //     data: {
+                //         ativo: true
+                //     }
+                // });
                 console.log("Usuário já existe");
                 return;
             }
@@ -57,7 +64,6 @@ export class WebhookService {
                     'ALUNO' // Role padrão
                 );
                 console.log(`Novo usuário criado com sucesso: ${user.email}`);
-
             }
 
             console.log(`Cliente: ${cliente?.name}, Produto: ${produto?.name}, Valor: R$${valor}, Email: ${cliente?.email}`);
@@ -69,7 +75,6 @@ export class WebhookService {
 
     async handleSubscription(payload: any): Promise<void> {
         console.log("Assinatura recebida/atualizada:", payload.subscription);
-        // Implementar lógica de negócio para assinaturas
         const produto = payload.product;
         // Validar se o nome do produto é SUMYIA"
         if (produto?.name !== "SUMYIA") {
@@ -80,8 +85,8 @@ export class WebhookService {
 
     async handleCancellation(payload: any): Promise<void> {
         console.log("Assinatura cancelada:", payload.subscription);
-        // Implementar lógica de negócio para cancelamentos
         const produto = payload.product;
+
         // Validar se o nome do produto é SUMYIA"
         if (produto?.name !== "SUMYIA") {
             console.log("Produto não é SUMYIA");

@@ -94,7 +94,7 @@ export class UserService {
       await idSchema.validate({ id });
 
       const usuario = await prisma.user.findUnique({
-        where: { id: id as any }, // Convertemos para any para evitar erros de tipo
+        where: { id: id as any },
         select: {
           id: true,
           nome: true,
@@ -103,7 +103,7 @@ export class UserService {
           updatedBy: true,
           createdAt: true,
           updatedAt: true
-        } as any // Convertemos para any para evitar erros de tipo
+        } as any 
       });
 
       if (!usuario) {
@@ -205,7 +205,6 @@ export class UserService {
       const usuario = await prisma.user.findUnique({ where: { email } });
 
       if (!usuario) {
-        // Não revele se o email existe ou não por segurança
         return { message: 'Se esse email estiver cadastrado, você receberá instruções.' };
       }
 
@@ -248,17 +247,6 @@ export class UserService {
     try {
       await resetPasswordSchema.validate({ token, novaSenha });
 
-      // Usar SQL raw enquanto o Prisma Client não estiver atualizado
-      const resetRecords = await prisma.$queryRaw`
-        SELECT * FROM "PasswordReset"
-        WHERE "token" = ${token}
-        AND "used" = false
-        AND "expiresAt" > ${new Date()}::timestamp
-        LIMIT 1
-      `;
-
-      /* 
-      // Após executar 'npx prisma generate', você pode usar essa versão:
       const passwordReset = await prisma.passwordReset.findFirst({
         where: {
           token: token,
@@ -272,13 +260,6 @@ export class UserService {
       if (!passwordReset) {
         throw new Error('Token inválido ou expirado');
       }
-      */
-
-      if (!resetRecords || (resetRecords as any[]).length === 0) {
-        throw new Error('Token inválido ou expirado');
-      }
-
-      const passwordReset = (resetRecords as any[])[0];
 
       // Criptografar nova senha
       const hashedPassword = await hash(novaSenha, 8);
@@ -292,20 +273,11 @@ export class UserService {
         }
       });
 
-      // Marcar token como usado (SQL raw)
-      await prisma.$executeRaw`
-        UPDATE "PasswordReset"
-        SET "used" = true
-        WHERE "id" = ${passwordReset.id}
-      `;
-
-      /* 
-      // Após executar 'npx prisma generate', você pode usar essa versão:
+      // Marcar token como usado
       await prisma.passwordReset.update({
         where: { id: passwordReset.id },
         data: { used: true }
       });
-      */
 
       return { message: 'Senha atualizada com sucesso' };
     } catch (error) {

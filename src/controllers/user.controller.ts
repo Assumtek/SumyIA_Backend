@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user/user.service';
 
-// Tipo local para UserRole
-type UserRole = 'ADMIN' | 'FREE' | 'PRO' | 'ALUNO';
-
 // Instância do serviço de usuário
 const userService = new UserService();
 
@@ -38,8 +35,6 @@ export class UserController {
   async update(req: Request, res: Response) {
     const id = req.user_id;
     const { nome, email } = req.body;
-    
-    // Obter o ID do usuário a partir do token JWT
     const updatedBy = req.user_id;
     
     try {

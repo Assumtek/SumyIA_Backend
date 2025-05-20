@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { compare } from "bcryptjs";
 import prisma from '../../prisma/client';
-import { loginSchema, tokenSchema } from './auth.schema';
+import { loginSchema } from './auth.schema';
 
 // Interface para o payload do token JWT
 interface JwtPayload {
@@ -62,33 +62,6 @@ export class AuthService {
         throw error;
       }
       throw new Error('Erro no processo de login');
-    }
-  }
-
-  // Verificar token JWT
-  verifyToken(token: string): JwtPayload {
-    try {
-      // Validar token
-      tokenSchema.validateSync({ token });
-      
-      // Verifica o token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'seu_segredo_super_secreto');
-      
-      // Garante que temos um objeto válido
-      if (!decoded || typeof decoded !== 'object') {
-        throw new Error('Token inválido ou mal formado.');
-      }
-      
-      // Garante que o payload contém as propriedades esperadas
-      const payload = decoded as JwtPayload;
-      if (!payload.userId || !payload.email) {
-        throw new Error('Token não contém as informações necessárias.');
-      }
-      
-      return payload;
-    } catch (error) {
-      console.error('Erro ao verificar token:', error);
-      throw new Error('Token inválido.');
     }
   }
 } 
