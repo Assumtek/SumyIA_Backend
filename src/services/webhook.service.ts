@@ -41,16 +41,16 @@ export class WebhookService {
             )
 
             if (existingUser) {
-                // // Atulizar o user para ativo
-                // await prisma.user.update({
-                //     where: {
-                //         id: existingUser.id
-                //     },
-                //     data: {
-                //         ativo: true
-                //     }
-                // });
-                console.log("Usuário já existe");
+                // Atulizar o user para ativo
+                await prisma.user.update({
+                    where: {
+                        id: existingUser.id
+                    },
+                    data: {
+                        ativo: true
+                    }
+                });
+                console.log("Usuário já existe"); 
                 return;
             }
 
@@ -76,21 +76,65 @@ export class WebhookService {
     async handleSubscription(payload: any): Promise<void> {
         console.log("Assinatura recebida/atualizada:", payload.subscription);
         const produto = payload.product;
+        const cliente = payload.contact;
+
         // Validar se o nome do produto é SUMYIA"
         if (produto?.name !== "SUMYIA") {
             console.log("Produto não é SUMYIA");
             return;
+        }
+
+        // Verificar se o usuário já existe
+        const existingUser = await prisma.user.findFirst(
+            {
+                where: {
+                    email: cliente.email
+                }
+            }
+        )
+
+        if (existingUser) {
+            // Atulizar o user para ativo
+            await prisma.user.update({
+                where: {
+                    email: cliente.email
+            },
+            data: {
+                    ativo: true
+                }
+            });
         }
     }
 
     async handleCancellation(payload: any): Promise<void> {
         console.log("Assinatura cancelada:", payload.subscription);
         const produto = payload.product;
+        const cliente = payload.contact;
 
         // Validar se o nome do produto é SUMYIA"
         if (produto?.name !== "SUMYIA") {
             console.log("Produto não é SUMYIA");
             return;
+        }
+        
+        // Verificar se o usuário já existe
+        const existingUser = await prisma.user.findFirst(
+            {
+                where: {
+                    email: cliente.email
+                }
+            }
+        )
+        if(existingUser) {
+            // Atulizar o user para inativo
+            await prisma.user.update({
+                where: {
+                id: payload.subscription.id
+            },
+            data: {
+                    ativo: false
+                }
+            }); 
         }
     }
 } 

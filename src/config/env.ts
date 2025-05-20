@@ -9,7 +9,7 @@ export const config = {
     url: process.env.DATABASE_URL
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'default-secret',
+    secret: process.env.JWT_SECRET || 'JWT_SECRET',
     expiresIn: '1d'
   },
   openai: {

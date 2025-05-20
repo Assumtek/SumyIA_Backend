@@ -22,6 +22,7 @@ model User {
   senha      String
   role       UserRole    @default(FREE)
   updatedBy  String?
+  ativo      Boolean     @default(true)
   conversas  Conversa[]
   passwordResets PasswordReset[]
   documentos Documento[]
@@ -69,5 +70,5 @@ model PasswordReset {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// npx prisma migrate dev --name documento
+// npx prisma migrate dev --name ativo
 // npx prisma generate

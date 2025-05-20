@@ -102,7 +102,8 @@ export class UserService {
           role: true,
           updatedBy: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
+          ativo: true
         } as any 
       });
 

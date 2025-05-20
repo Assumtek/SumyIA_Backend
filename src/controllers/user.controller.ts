@@ -20,6 +20,7 @@ export class UserController {
 
   // Obter informações de um usuário pelo ID
   async getById(req: Request, res: Response) {
+    console.log("Chamando o getById")
     const id = req.user_id;
     
     try {

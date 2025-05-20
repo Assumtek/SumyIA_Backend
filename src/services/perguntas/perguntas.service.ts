@@ -139,11 +139,9 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
 
   private async executarAssistente(threadId: string, userId: string) {
     console.log('Executando o assistente');
-    console.log('threadId', threadId);
-    console.log('userId', userId);
 
     const run = await openai.beta.threads.runs.create(threadId, {
-      assistant_id: await this.criarAssistente()
+      assistant_id: "asst_iIRSk7icCU5DjGGPC7tHCAC7"
     });
 
     // Aguarda status
@@ -202,6 +200,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
 
     return firstMessage.text.value.trim();
   }
+
   // Chamar a API da OpenAI e obter a resposta com base no histórico
   async obterRespostaOpenAI(mensagens: Array<{ role: string, content: string }>, userId: string, threadId?: string) {
     try {
@@ -224,29 +223,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
       throw new Error('Erro ao processar sua mensagem com a API OpenAI.');
     }
   }
-
-  // Obter o histórico de mensagens de uma conversa
-  async obterHistoricoMensagens(conversaId: string) {
-    try {
-      const mensagens = await prisma.mensagem.findMany({
-        where: {
-          conversaId: conversaId
-        },
-        orderBy: {
-          createdAt: 'asc'
-        },
-        select: {
-          role: true,
-          content: true
-        }
-      });
-
-      return mensagens;
-    } catch (error) {
-      throw error;
-    }
-  }
-
+  
   // Iniciar uma nova conversa
   async iniciarConversa(userId: string, secao: string) {
     try {
@@ -264,21 +241,24 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
         data: {
           userId,
           secao,
-          threadId: null // Inicialmente null, será atualizado após a primeira interação
+          threadId: null 
         }
       });
 
       await prisma.mensagem.create({
         data: {
-          role: 'system',
-          content: `Seu nome é FelipeIA`,
+          role: 'user',
+          content: `O meu nome é ${usuario.nome}`,
           conversaId: conversa.id
         }
       });
 
-
-
-      const historico = await this.obterHistoricoMensagens(conversa.id);
+      const historico = [
+        {
+          role: "user",
+          content: `O meu nome é ${usuario.nome}`
+        }
+      ]
       const { resposta: respostaIA, threadId } = await this.obterRespostaOpenAI(historico, userId);
 
       // Atualiza a conversa com o threadId
@@ -332,7 +312,11 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
         }
       });
 
-      const historico = await this.obterHistoricoMensagens(conversaId);
+      const historico = [{
+        role: "user",
+        content: resposta,
+        conversaId: conversaId
+      }]
       const { resposta: respostaIA } = await this.obterRespostaOpenAI(historico, userId, conversa.threadId || undefined);
 
       await prisma.mensagem.create({
