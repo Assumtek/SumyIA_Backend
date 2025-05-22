@@ -98,8 +98,8 @@ export class WebhookService {
             await prisma.user.update({
                 where: {
                     email: cliente.email
-            },
-            data: {
+                },
+                data: {
                     ativo: true
                 }
             });

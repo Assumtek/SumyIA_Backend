@@ -141,7 +141,7 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     console.log('Executando o assistente');
 
     const run = await openai.beta.threads.runs.create(threadId, {
-      assistant_id: "asst_iIRSk7icCU5DjGGPC7tHCAC7"
+      assistant_id: await this.criarAssistente()
     });
 
     // Aguarda status
