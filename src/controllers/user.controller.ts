@@ -20,7 +20,6 @@ export class UserController {
 
   // Obter informações de um usuário pelo ID
   async getById(req: Request, res: Response) {
-    console.log("Chamando o getById")
     const id = req.user_id;
     
     try {
@@ -64,6 +63,30 @@ export class UserController {
       if (error.message === 'Senha atual incorreta.') {
         return res.status(401).send(error.message);
       } else if (error.message === 'Usuário não encontrado.') {
+        return res.status(404).send(error.message);
+      }
+      
+      res.status(500).send(error.message);
+    }
+  }
+
+  // Atualizar foto do usuário
+  async updatePhoto(req: Request, res: Response) {
+    const id = req.user_id;
+    const file = req.file;
+    const updatedBy = req.user_id;
+    
+    if (!file) {
+      return res.status(400).send('Nenhum arquivo foi enviado.');
+    }
+    
+    try {
+      const resultado = await userService.updatePhoto(id, file, updatedBy);
+      res.json(resultado);
+    } catch (error: any) {
+      console.error('Erro ao atualizar foto:', error);
+      
+      if (error.message === 'Usuário não encontrado.') {
         return res.status(404).send(error.message);
       }
       

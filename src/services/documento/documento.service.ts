@@ -18,10 +18,6 @@ export class DocumentoService {
   // Gerar documento Word a partir de especificações
   async gerarDocumentoEspecificacao(projectName: string, specifications: string, userId: string) {
     try {
-      console.log('Gerando documento Word...');
-      console.log('userId', userId);
-      console.log(projectName);
-      console.log(specifications);
 
       // Dividir as especificações em seções
       // Usar regex para separar título e conteúdo, removendo os **
@@ -114,8 +110,6 @@ export class DocumentoService {
 
       // Remover arquivo temporário
       fs.unlinkSync(filePath);
-
-      console.log('Documento gerado com sucesso!');
       // Salvar o documento gerado no banco de dados usando prisma
 
       await prisma.documento.create({

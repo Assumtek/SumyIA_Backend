@@ -5,6 +5,10 @@ import { createUserSchema, updateUserSchema, idSchema, updatePasswordSchema, for
 import { EmailService } from '../email/email.service';
 import * as crypto from 'crypto';
 import { config } from '../../config/env';
+import { createClient } from '@supabase/supabase-js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Multer } from 'multer';
 
 // Definição de tipos locais em vez de importar do Prisma Client
 type UserRole = 'ADMIN' | 'FREE' | 'PRO' | 'ALUNO';
@@ -12,9 +16,14 @@ type UserRole = 'ADMIN' | 'FREE' | 'PRO' | 'ALUNO';
 export class UserService {
 
   private emailService: EmailService;
+  private supabase;
 
   constructor() {
     this.emailService = new EmailService();
+    this.supabase = createClient(
+      config.supabase.url,
+      config.supabase.anonKey
+    );
   }
 
   // Criar um novo usuário
@@ -284,6 +293,80 @@ export class UserService {
     } catch (error) {
       if (error instanceof Error) throw error;
       throw new Error('Erro ao redefinir senha');
+    }
+  }
+
+  // Atualizar foto do usuário
+  async updatePhoto(id: string, file: Express.Multer.File, updatedBy: string) {
+    try {
+      // Validar ID
+      await idSchema.validate({ id });
+
+      // Verificar se o usuário existe
+      const usuario = await prisma.user.findUnique({
+        where: { id: id as any }
+      });
+
+      if (!usuario) {
+        throw new Error('Usuário não encontrado.');
+      }
+
+      // Criar diretório para armazenar as fotos temporárias
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Gerar nome de arquivo único baseado no ID do usuário e timestamp
+      const fileName = `foto_${id}_${Date.now()}${path.extname(file.originalname)}`;
+      const filePath = path.join(uploadsDir, fileName);
+
+      // Salvar o arquivo temporariamente
+      fs.writeFileSync(filePath, file.buffer);
+
+      // Upload para o Supabase Storage
+      const { data: uploadData, error: uploadError } = await this.supabase.storage
+        .from('fotos')
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
+          upsert: true
+        });
+
+      if (uploadError) {
+        throw new Error(`Erro ao fazer upload para o Supabase: ${uploadError.message}`);
+      }
+
+      // Obter URL pública do arquivo
+      const { data: { publicUrl } } = this.supabase.storage
+        .from('fotos')
+        .getPublicUrl(fileName);
+
+      // Remover arquivo temporário
+      fs.unlinkSync(filePath);
+
+      // Atualizar a foto do usuário
+      const usuarioAtualizado = await prisma.user.update({
+        where: { id: id as any },
+        data: {
+          photoUrl: publicUrl,
+          updatedBy
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          photoUrl: true,
+          updatedBy: true,
+          updatedAt: true
+        }
+      });
+
+      return usuarioAtualizado;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Erro ao atualizar foto do usuário');
     }
   }
 } 

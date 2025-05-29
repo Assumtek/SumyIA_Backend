@@ -96,7 +96,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
 
   private async criarThread() {
     const thread = await openai.beta.threads.create();
-    console.log('thread', thread.id);
     return thread.id;
   }
 
@@ -108,7 +107,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
   }
 
   private async chamarFuncaoExportarEspecificacao(params: any, userId: string) {
-    console.log('Chamou a função exportar especificação', params);
 
     const { project_name, specifications, format } = params;
 
@@ -138,7 +136,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
   }
 
   private async executarAssistente(threadId: string, userId: string) {
-    console.log('Executando o assistente');
 
     const run = await openai.beta.threads.runs.create(threadId, {
       assistant_id: "asst_iIRSk7icCU5DjGGPC7tHCAC7"
@@ -148,7 +145,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     let runStatus;
     do {
       runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
-      console.log('Status do run:', runStatus.status);
       await new Promise(res => setTimeout(res, 1000));
     } while (runStatus.status !== 'requires_action' && runStatus.status !== 'completed');
 
@@ -177,7 +173,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
       let completedRun;
       do {
         completedRun = await openai.beta.threads.runs.retrieve(threadId, run.id);
-        console.log('Status do run após função:', completedRun.status);
         await new Promise(res => setTimeout(res, 1000));
       } while (completedRun.status !== 'completed');
     }
@@ -194,9 +189,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     if (firstMessage.type !== 'text') {
       throw new Error('Unexpected message content type');
     }
-
-    console.log('Asistente', firstMessage);
-    console.log('Dados do assistente', assistantMessages[0]);
 
     return firstMessage.text.value.trim();
   }
@@ -346,7 +338,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
   // Listar conversas de um usuário
   async listarConversas(userId: string) {
     try {
-      console.log('Chamou o service para listar as conversa do userId:', userId);
       // Validar dados
       await listarConversasSchema.validate({ userId });
 

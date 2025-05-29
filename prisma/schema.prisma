@@ -23,6 +23,7 @@ model User {
   role       UserRole    @default(FREE)
   updatedBy  String?
   ativo      Boolean     @default(true)
+  photoUrl   String?     @default("")
   conversas  Conversa[]
   passwordResets PasswordReset[]
   documentos Documento[]
