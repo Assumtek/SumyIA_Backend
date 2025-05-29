@@ -3,6 +3,7 @@ import conversaRoutes from './conversa.routes';
 import userRoutes from './user.routes';
 import authRoutes from './auth.routes';
 import webhookRoutes from './webhook.routes';
+import adminRoutes from './admin.routes';
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 router.use('/conversa', conversaRoutes);
 router.use('/usuarios', userRoutes);
 router.use('/auth', authRoutes);
-router.use("/webhook", webhookRoutes);
+router.use('/webhook', webhookRoutes);
+router.use('/admin', adminRoutes);
 
 export default router; 
