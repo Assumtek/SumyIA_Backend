@@ -113,7 +113,13 @@ export class UserService {
           createdAt: true,
           updatedAt: true,
           ativo: true,
-          photoUrl: true
+          photoUrl: true,
+          _count: {
+            select: {
+              feedbacks: true,
+              documentos: true
+            }
+          }
         } as any 
       });
 
