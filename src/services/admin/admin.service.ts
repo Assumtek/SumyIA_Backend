@@ -14,6 +14,7 @@ export class AdminService {
           createdAt: true,
           updatedAt: true,
           ativo: true,
+          photoUrl: true,
           _count: {
             select: {
               documentos: true,

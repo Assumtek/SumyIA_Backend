@@ -112,7 +112,8 @@ export class UserService {
           updatedBy: true,
           createdAt: true,
           updatedAt: true,
-          ativo: true
+          ativo: true,
+          photoUrl: true
         } as any 
       });
 

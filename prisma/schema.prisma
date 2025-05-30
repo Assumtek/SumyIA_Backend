@@ -29,6 +29,23 @@ model User {
   documentos Documento[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  feedbacks Feedback[]
+}
+
+model Feedback {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+
+  utilidade         Int
+  facilidade        Int
+  design            Int
+  confiabilidade    Int
+  recomendacao      Int
+  valorJusto        Int
+  recursoFaltando   String
 }
 
 model Documento {
@@ -71,5 +88,5 @@ model PasswordReset {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// npx prisma migrate dev --name ativo
+// npx prisma migrate dev --name feedback
 // npx prisma generate
