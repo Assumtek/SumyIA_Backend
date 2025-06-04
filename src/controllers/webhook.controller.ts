@@ -13,21 +13,16 @@ export class WebhookController {
             const webhook = req.body;
             const type = webhook?.payload?.webhook_type;
 
-            console.log("Recebido Webhook:", type);
-
             switch (type) {
                 case "transaction":
                     await this.webhookService.handleTransaction(webhook.payload);
-                    console.log("Transação processada com sucesso");
                     break;
                 case "subscription":
                     await this.webhookService.handleSubscription(webhook.payload);
-                    console.log("Assinatura processada com sucesso");
                     
                     break;
                 case "cancellation":
                     await this.webhookService.handleCancellation(webhook.payload);
-                    console.log("Cancelamento processado com sucesso");
                     
                     break;
                 default:

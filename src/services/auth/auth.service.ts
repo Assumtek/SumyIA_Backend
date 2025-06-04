@@ -16,7 +16,6 @@ export class AuthService {
   // Realizar login
   async login(email: string, senha: string) {
     try {
-      console.log("login", email, senha)
       // Validar dados de entrada
       await loginSchema.validate({ email, senha });
       

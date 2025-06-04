@@ -1,6 +1,7 @@
 import express from 'express';
 import { UserController } from '../controllers/user.controller';
 import { AuthMiddleware } from '../middleware/auth.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 const router = express.Router();
 // Instância do controlador de usuário
@@ -19,6 +20,9 @@ router.get('/', AuthMiddleware.verificarToken, userController.getById);
 
 // Rota para atualizar um usuário - autenticada
 router.put('/', AuthMiddleware.verificarToken, userController.update);
+
+// Rota para editar a foto do usuário - autenticada
+router.put('/photo', AuthMiddleware.verificarToken, upload.single('foto'), userController.updatePhoto);
 
 // Rota para atualizar a senha do usuário - autenticada
 router.put('/senha', AuthMiddleware.verificarToken, userController.updatePassword);

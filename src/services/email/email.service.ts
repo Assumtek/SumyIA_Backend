@@ -46,7 +46,6 @@ export class EmailService {
 
       // Enviar o email usando Nodemailer
       const info = await this.transporter.sendMail(data);
-      console.log(`Email de boas-vindas enviado para ${email}, ID: ${info.messageId}`);
       
       return { success: true, message: 'Email de boas-vindas enviado com sucesso' };
     } catch (error) {
@@ -81,7 +80,6 @@ export class EmailService {
       };
 
       const info = await this.transporter.sendMail(data);
-      console.log(`Email de recuperação enviado para ${email}, ID: ${info.messageId}`);
       
       return { success: true, message: 'Email de recuperação enviado com sucesso' };
     } catch (error) {
