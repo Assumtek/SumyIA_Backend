@@ -197,16 +197,54 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
   async obterRespostaOpenAI(mensagens: Array<{ role: string, content: string }>, userId: string, threadId?: string) {
     try {
       let currentThreadId = threadId;
+      let historicoCompleto = mensagens;
 
       if (!currentThreadId) {
         currentThreadId = await this.criarThread();
+      } else {
+        try {
+          // Tenta verificar se a thread existe
+          await openai.beta.threads.retrieve(currentThreadId);
+        } catch (error) {
+          // Se a thread não existir, cria uma nova e recria o histórico
+          console.log('Thread não encontrada, criando uma nova e recriando histórico...');
+          currentThreadId = await this.criarThread();
+          
+          // Busca o histórico completo da conversa no banco de dados
+          const conversa = await prisma.conversa.findFirst({
+            where: { threadId },
+            include: {
+              mensagens: {
+                orderBy: {
+                  createdAt: 'asc'
+                }
+              }
+            }
+          });
+
+          if (conversa) {
+            historicoCompleto = conversa.mensagens.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }));
+          }
+        }
       }
 
       if (!currentThreadId) {
         throw new Error('Não foi possível criar ou obter o ID da thread');
       }
 
-      await this.adicionarMensagemThread(currentThreadId, mensagens[mensagens.length - 1].content);
+      // Se for uma nova thread, recria todo o histórico
+      if (historicoCompleto.length > 1) {
+        for (const msg of historicoCompleto) {
+          await this.adicionarMensagemThread(currentThreadId, msg.content);
+        }
+      } else {
+        // Se não for uma nova thread, apenas adiciona a última mensagem
+        await this.adicionarMensagemThread(currentThreadId, mensagens[mensagens.length - 1].content);
+      }
+
       const resposta = await this.executarAssistente(currentThreadId, userId);
 
       return { resposta, threadId: currentThreadId };
@@ -309,7 +347,15 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
         content: resposta,
         conversaId: conversaId
       }]
-      const { resposta: respostaIA } = await this.obterRespostaOpenAI(historico, userId, conversa.threadId || undefined);
+      const { resposta: respostaIA, threadId: novaThreadId } = await this.obterRespostaOpenAI(historico, userId, conversa.threadId || undefined);
+
+      // Atualiza o threadId se uma nova thread foi criada
+      if (novaThreadId !== conversa.threadId) {
+        await prisma.conversa.update({
+          where: { id: conversaId },
+          data: { threadId: novaThreadId }
+        });
+      }
 
       await prisma.mensagem.create({
         data: {
