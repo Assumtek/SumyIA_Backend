@@ -331,10 +331,6 @@ Se o a pessoa falar que quer exportar a especificação funciona você deve cham
     }
   }
 
-
-
-
-
   // Listar conversas de um usuário
   async listarConversas(userId: string) {
     try {
